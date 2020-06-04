@@ -35,11 +35,12 @@ def secret_view():
     return render_template('secret.html')
 
 
-# Define a class for the Artist table
+# Define users
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    discord_id = db.Column(db.String(80), unique=True, nullable=False)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    discordname = db.Column(db.String(80), unique=True, nullable=False)
+    new = db.Column(db.String(80), unique=True, nullable=False)
 
     def __repr__(self):
         return self.username
@@ -53,7 +54,7 @@ class Tourn(db.Model):
         return self.name
 
 
-# Define the Artwork table
+# Define record table
 class Record(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime, nullable=False,
@@ -74,23 +75,23 @@ class UserModelView(ModelView):
 
 
 class TournModelView(ModelView):
-    page_size = 50  # the number of entries to display on the list view
+    page_size = 50
     can_export = True
     column_searchable_list = ['name']
 
 
 class RecordModelView(ModelView):
-    page_size = 50  # the number of entries to display on the list view
+    page_size = 50
     can_export = True
     column_searchable_list = ['user_id']
 
 
-# add
+# add to admin view
 admin.add_view(UserModelView(User, db.session))
 admin.add_view(TournModelView(Tourn, db.session))
 admin.add_view(RecordModelView(Record, db.session))
 
-# Create the table
+# create table
 db.create_all()
 
 
@@ -104,7 +105,8 @@ class UserSchema(Schema):
 
     id = fields.Integer()
     username = fields.Str(required=True)
-    discordname = fields.Str()
+    discord_id = fields.Str()
+    name = fields.Str()
     records = Relationship(self_view='user_records',
                            self_view_kwargs={'id': '<id>'},
                            related_view='user_many',
@@ -204,10 +206,8 @@ api.route(TournMany, 'tourn_many', '/tourns')
 api.route(TournOne, 'tourn_one', '/tourns/<int:id>')
 api.route(RecordOne, 'record_one', '/records/<int:id>')
 api.route(RecordMany, 'record_many', '/records')
-api.route(UserRecord, 'user_records',
-          '/users/<int:id>/relationships/records')
-api.route(TournRecord, 'tourn_records',
-          '/tourns/<int:id>/relationships/records')
+api.route(UserRecord, 'user_records','/users/<int:id>/relationships/records')
+api.route(TournRecord, 'tourn_records', '/tourns/<int:id>/relationships/records')
 
 # main loop to run app in debug mode
 if __name__ == '__main__':
