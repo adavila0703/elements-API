@@ -10,7 +10,6 @@ from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
 from datetime import datetime
 
-
 # Create a new Flask application
 app = Flask(__name__)
 
@@ -38,12 +37,16 @@ def secret_view():
 # Define users
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    discord_id = db.Column(db.String(80), unique=True, nullable=False)
+    discord_id = db.Column(db.Integer, unique=True, nullable=False)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    new = db.Column(db.String(80), unique=True, nullable=False)
+    scrimx1 = db.Column(db.Boolean, unique=True, nullable=False)
+    scrimx2 = db.Column(db.Boolean, unique=True, nullable=False)
+    scrimx3 = db.Column(db.Boolean, unique=True, nullable=False)
 
-    def __repr__(self):
-        return self.username
+    def __int__(self):
+        return self.discord_id
+
+
 
 
 class Tourn(db.Model):
@@ -59,13 +62,16 @@ class Record(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime, nullable=False,
                      default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    tourn_id = db.Column(db.Integer, db.ForeignKey('tourn.id'))
+    discord_id = db.Column(db.Integer, nullable=False)
+    username = db.Column(db.String, nullable=False)
+    tourny_name = db.Column(db.String, nullable=True)
+    qualy_name = db.Column(db.String, nullable=True)
+    scrimy_name = db.Column(db.String, nullable=True)
+    game = db.Column(db.String, nullable=True)
     place = db.Column(db.Integer, nullable=False)
     kills = db.Column(db.Integer, nullable=False)
+    assists = db.Column(db.Integer, nullable=False)
     damage = db.Column(db.Integer, nullable=False)
-    tourn = db.relationship('Tourn', backref=db.backref('tourns'))
-    user = db.relationship('User', backref=db.backref('records'))
 
 
 class UserModelView(ModelView):
@@ -83,7 +89,7 @@ class TournModelView(ModelView):
 class RecordModelView(ModelView):
     page_size = 50
     can_export = True
-    column_searchable_list = ['user_id']
+    column_searchable_list = ['username']
 
 
 # add to admin view
@@ -141,11 +147,15 @@ class RecordSchema(Schema):
         self_view_many = 'record_many'
 
     id = fields.Integer()
-    tourn_id = fields.Integer(required=True)
-    user_id = fields.Integer(required=True)
-    date = fields.DateTime(load_only=True)
+    discord_id = fields.Integer(required=True)
+    username = fields.String(required=True)
+    tourny_name = fields.String()
+    qualy_name = fields.String()
+    scrimy_name = fields.String()
+    game = fields.String()
     place = fields.Integer(required=True)
     kills = fields.Integer(required=True)
+    assists = fields.Integer(required=True)
     damage = fields.Integer(required=True)
 
 
@@ -206,10 +216,10 @@ api.route(TournMany, 'tourn_many', '/tourns')
 api.route(TournOne, 'tourn_one', '/tourns/<int:id>')
 api.route(RecordOne, 'record_one', '/records/<int:id>')
 api.route(RecordMany, 'record_many', '/records')
-api.route(UserRecord, 'user_records','/users/<int:id>/relationships/records')
+api.route(UserRecord, 'user_records', '/users/<int:id>/relationships/records')
 api.route(TournRecord, 'tourn_records', '/tourns/<int:id>/relationships/records')
 
 # main loop to run app in debug mode
 if __name__ == '__main__':
-    app.secret_key = ''
+    app.secret_key = 'test'
     app.run(debug=True)
