@@ -9,6 +9,8 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
 from datetime import datetime
+from flask_script import Manager
+from flask_migrate import Migrate, MigrateCommand
 
 # Create a new Flask application
 app = Flask(__name__)
@@ -17,6 +19,10 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///spellbreak.db'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+manager = Manager(app)
+manager.add_command('db', MigrateCommand)
 
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 admin = Admin(app, template_mode='bootstrap3')
@@ -26,6 +32,9 @@ app.config['BASIC_AUTH_PASSWORD'] = 'tito'
 app.config['BASIC_AUTH_FORCE'] = True
 
 basic_auth = BasicAuth(app)
+
+def migration():
+    manager.run()
 
 
 @app.route('/secret')
@@ -45,8 +54,6 @@ class User(db.Model):
 
     def __int__(self):
         return self.discord_id
-
-
 
 
 class Tourn(db.Model):
