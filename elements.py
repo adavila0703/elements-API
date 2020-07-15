@@ -12,6 +12,14 @@ from datetime import datetime
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 
+
+def get_info(num):
+    file = open('element-info.txt', 'r')
+    out = file.readlines()
+    file.close()
+    return out[num]
+
+
 # Create a new Flask application
 app = Flask(__name__)
 
@@ -27,9 +35,10 @@ manager.add_command('db', MigrateCommand)
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 admin = Admin(app, template_mode='bootstrap3')
 
-app.config['BASIC_AUTH_USERNAME'] = 'tito'
-app.config['BASIC_AUTH_PASSWORD'] = 'tito'
+app.config['BASIC_AUTH_USERNAME'] = get_info(0).strip()
+app.config['BASIC_AUTH_PASSWORD'] = get_info(1).strip()
 app.config['BASIC_AUTH_FORCE'] = True
+
 
 basic_auth = BasicAuth(app)
 
@@ -48,9 +57,6 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     discord_id = db.Column(db.Integer, unique=True, nullable=False)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    scrimx1 = db.Column(db.Boolean, unique=True, nullable=False)
-    scrimx2 = db.Column(db.Boolean, unique=True, nullable=False)
-    scrimx3 = db.Column(db.Boolean, unique=True, nullable=False)
 
     def __int__(self):
         return self.discord_id
@@ -79,6 +85,7 @@ class Record(db.Model):
     kills = db.Column(db.Integer, nullable=False)
     assists = db.Column(db.Integer, nullable=False)
     damage = db.Column(db.Integer, nullable=False)
+    score = db.Column(db.Integer, nullable=True)
 
 
 class UserModelView(ModelView):
@@ -229,4 +236,4 @@ api.route(TournRecord, 'tourn_records', '/tourns/<int:id>/relationships/records'
 # main loop to run app in debug mode
 if __name__ == '__main__':
     app.secret_key = 'test'
-    app.run(debug=True)
+    app.run(host=str(get_info(2)), port=int(get_info(3)), debug=False)
